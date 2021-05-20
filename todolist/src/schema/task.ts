@@ -2,10 +2,29 @@ import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema({
     name:String,
-    comments:String,
+    comments:[String!],
     status:Boolean,
     owner:String,
-    sharedWith:Array<String>()
+    sharedWith:[String!]
 });
 
-module.exports = mongoose.model('Task', taskSchema);
+export const typeDef = `
+type Task{
+    _id: ID!
+    name:String!,
+    comments:[String],
+    status:Boolean,
+    owner:String!,
+    sharedWith:[String!]
+  }
+
+  input TaskInput{
+    name:String!,
+    comments:[String],
+    status:Boolean!,
+    owner:String!,
+    sharedWith:[String!]
+  }
+`
+
+export let Task = mongoose.model('Task', taskSchema);

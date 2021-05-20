@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
-function Add(Obj: any, Data: any): any {
+function Read(Obj: any): any{
+    return Obj.find({});
+}
+
+function Create(Obj: any, Data: any): any {
     let newObj = new Obj(Data); // this is modal object.
     newObj.save()
         .then((data: any) => {
@@ -29,4 +33,4 @@ function Delete(Obj: any, id: string): void {
     }
 }
 
-export { Add, Delete};
+export { Create, Read, Delete};

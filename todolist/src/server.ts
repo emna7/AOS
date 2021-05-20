@@ -1,10 +1,11 @@
 import { Md5 } from 'ts-md5/dist/md5';
 var mongoose = require('mongoose');
-import { Add } from "./models/crud";
-
-
-var User = require('./schema/user');
-var Task = require('./schema/task');
+import { Create, Read, Delete } from "./models/crud";
+import { typeDef as UserType, User } from './schema/user';
+import { typeDef as TaskType, Task } from './schema/task';
+var express = require('express');
+var { graphqlHTTP } = require('express-graphql');
+var { buildSchema } = require('graphql');
 
 secret: 'holbertonSchool2021';
 mongoose.connect('mongodb+srv://admin:holbertonschool@cluster0.clklb.mongodb.net/myFirstDatabase?retryWrites=true&w=majority').then(
@@ -12,49 +13,22 @@ mongoose.connect('mongodb+srv://admin:holbertonschool@cluster0.clklb.mongodb.net
   (err: any) => { console.log("err", err); }
 );
 
-const user = {
-  name: "Emna",
-  password: "blabla",
-  email: "test@gmail.com"
-}
-
-const task = {
-  name: "Do the todolist",
-  comments: "This is a great task",
-  status: true,
-  owner: "blablabla",
-  sharedWith: "blabla"
-}
-
-var express = require('express');
-var { graphqlHTTP } = require('express-graphql');
-var { buildSchema } = require('graphql');
-
 
 
 // The root provides a resolver function for each API endpoint
 // Construct a schema, using GraphQL schema language
-var schema = buildSchema(`
-    type User{
-      _id: ID!
-      email:String!,
-      password:String!,
-      name:String!,
-    }
-    
-    input UserInput
-    {
-      email:String!,
-      password:String!,
-      name:String!,
-    }
+var schema = buildSchema(
+  UserType +
+  TaskType +
+  `
     type RootQuery{
-      users: [User!]!
+      users: [User]
+      tasks: [Task]
     }
     type RootMutation {
       addUser(userInput: UserInput): User
+      addTask(taskInput: TaskInput): Task
     }
-
     schema
     {
       query: RootQuery,
@@ -63,15 +37,32 @@ var schema = buildSchema(`
 `);
 
 var root = {
+  users: () => {
+    return User.find({});
+  },
   addUser: (args: any) => {
     // Behavior here
-    const newUser = Add(User, {email:args.userInput.email, password:args.userInput.password, name:args.userInput.name});
+    const newUser = Create(User, {
+      email: args.userInput.email,
+      password: args.userInput.password,
+      name: args.userInput.name
+    });
     return args.userInput;
   },
-  users: (args: any) => {
-    const userName = args.name;
-    return userName;
-  }
+  tasks: () => {
+    return Task.find({});
+  },
+  addTask: (args: any) => {
+    // Behavior here
+    const newUser = Create(Task, {
+      name: args.taskInput.name,
+      comments: args.taskInput.comments,
+      status: args.taskInput.status,
+      owner: args.taskInput.owner,
+      sharedWith: args.taskInput.sharedWidth
+    });
+    return args.userInput;
+  },
 };
 
 var app = express();
@@ -82,4 +73,3 @@ app.use('/graphql', graphqlHTTP({
 }));
 app.listen(4000);
 console.log('Running a GraphQL API server at http://localhost:4000/graphql');
-
